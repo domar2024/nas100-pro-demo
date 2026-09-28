@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>NAS100 PRO ANALYTICS — Demo (frontend)</title>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{--bg:#0b0f17;--panel:#121826;--panel2:#0f1522;--line:#1e2637;--txt:#e6edf7;--muted:#8ea0bd;--green:#26d07c;--red:#ff5c7a;--gold:#e3c467;--blue:#3d8bfd}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,Arial,sans-serif}
+.banner{background:linear-gradient(90deg,#3a2c00,#5b4400);color:#ffe9a8;font-size:12.5px;padding:7px 14px;text-align:center;letter-spacing:.3px}
+.banner b{color:#fff}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.brand{font-weight:800;letter-spacing:.5px;font-size:18px}
+.brand span{color:var(--blue)}
+.hstats{display:flex;gap:16px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.hstats b{color:var(--txt)}
+.wrap{display:grid;grid-template-columns:1fr 340px;gap:14px;padding:14px}
+.chart{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;height:62vh;min-height:380px}
+.side{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card h3{margin:0 0 10px;font-size:13px;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.sig{font-weight:800;font-size:24px}
+.sig.LONG{color:var(--green)}.sig.SHORT{color:var(--red)}.sig.NOTRADE{color:var(--muted)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;font-size:14px}
+.kv div{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.kv .k{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.kv .v{font-weight:700;font-variant-numeric:tabular-nums}
+.score{display:flex;align-items:baseline;gap:8px;margin-top:8px}
+.score .n{font-size:30px;font-weight:800}
+.grade{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--gold)}
+.check{list-style:none;margin:0;padding:0;font-size:13.5px}
+.check li{padding:3px 0}
+.check .on{color:var(--green)}.check .off{color:#4b5871}
+.why li{margin-bottom:6px;color:#cbd7ea}
+.bottom{grid-column:1 / -1;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;padding:0 14px 20px}
+select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.badge{font-size:11px;color:var(--muted)}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}.chart{height:46vh}}
+</style>
+</head>
+<body>
+<div class="banner">🧪 <b>DEMO — vista previa del frontend.</b> El motor (estructura, liquidez, FVG, Order Blocks, confluencia, riesgo) es real; los datos son <b>simulados</b> (feed *replay*). No es mercado real ni recomendación de inversión.</div>
+<header>
+  <div class="brand">NAS100 <span>PRO ANALYTICS</span> <span class="badge" id="prov">· demo</span></div>
+  <div class="hstats">
+    <div>Régimen: <b id="reg">—</b></div>
+    <div>Sesión: <b id="sess">—</b></div>
+    <div>Precio: <b id="px">—</b></div>
+    <div>TF:
+      <select id="tf"><option>1m</option><option selected>5m</option><option>15m</option><option>1h</option></select>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="chart" id="chart"></div>
+  <div class="side">
+    <div class="card">
+      <h3>Current Signal</h3>
+      <div class="sig NOTRADE" id="dir">—</div>
+      <div class="score"><span class="n" id="score">0</span><span>/100</span> <span class="grade" id="grade">—</span></div>
+      <div class="kv">
+        <div><div class="k">Entry</div><div class="v" id="entry">—</div></div>
+        <div><div class="k">SL</div><div class="v" id="sl">—</div></div>
+        <div><div class="k">TP1</div><div class="v" id="tp1">—</div></div>
+        <div><div class="k">TP2</div><div class="v" id="tp2">—</div></div>
+        <div><div class="k">TP3</div><div class="v" id="tp3">—</div></div>
+        <div><div class="k">R:R</div><div class="v" id="rr">—</div></div>
+        <div><div class="k">Lot</div><div class="v" id="lot">—</div></div>
+        <div><div class="k">Risk</div><div class="v" id="risk">—</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin:10px 0 0" id="inv">—</p>
+    </div>
+    <div class="card">
+      <h3>Confluence</h3>
+      <ul class="check" id="conf"></ul>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="card"><h3>Why this trade?</h3><ul class="why" id="why"></ul></div>
+    <div class="card"><h3>Market structure</h3><div id="struct" style="font-size:13.5px"></div></div>
+    <div class="card"><h3>Position size</h3><div id="pos" style="font-size:13.5px"></div></div>
+    <div class="card"><h3>Indicators</h3><div id="ind" style="font-size:13.5px"></div></div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const chart=LightweightCharts.createChart($('#chart'),{layout:{background:{color:'#121826'},textColor:'#c9d6ea'},grid:{vertLines:{color:'#182034'},horzLines:{color:'#182034'}},timeScale:{timeVisible:true,secondsVisible:false},rightPriceScale:{borderColor:'#1e2637'}});
+const candles=chart.addCandlestickSeries({upColor:'#26d07c',downColor:'#ff5c7a',borderVisible:false,wickUpColor:'#26d07c',wickDownColor:'#ff5c7a'});
+let lines=[];
+function clearLines(){lines.forEach(l=>candles.removePriceLine(l));lines=[];}
+function pl(price,color,title){if(price!=null)lines.push(candles.createPriceLine({price,color,lineWidth:1,lineStyle:2,axisLabelVisible:true,title}));}
+
+function render(d){
+  const cs=d.candles.map(c=>({time:c.t,open:c.o,high:c.h,low:c.l,close:c.c}));
+  candles.setData(cs); chart.timeScale().fitContent();
+  const I=d.indicators||{};
+  $('#sess').textContent=d.session||'—';
+  $('#px').textContent=d.entry??'—';
+  $('#reg').textContent=(d.regime&&d.regime.regime)||'—';
+  const dir=$('#dir'); dir.textContent=d.direction==='LONG'?'🟢 LONG':d.direction==='SHORT'?'🔴 SHORT':'NO TRADE';
+  dir.className='sig '+(d.direction==='LONG'?'LONG':d.direction==='SHORT'?'SHORT':'NOTRADE');
+  $('#score').textContent=d.score||0; $('#grade').textContent=d.grade||'—';
+  $('#entry').textContent=d.entry??'—'; $('#sl').textContent=d.sl??'—';
+  $('#tp1').textContent=(d.tp&&d.tp[0])??'—'; $('#tp2').textContent=(d.tp&&d.tp[1])??'—'; $('#tp3').textContent=(d.tp&&d.tp[2])??'—';
+  $('#rr').textContent=d.rr||'—';
+  $('#lot').textContent=(d.position&&d.position.lot)??'—';
+  $('#risk').textContent=(d.position&&('$'+d.position.estimated_loss))??'—';
+  $('#inv').textContent=d.invalidation||'—';
+  clearLines(); pl(d.entry,'#3d8bfd','Entry'); pl(d.sl,'#ff5c7a','SL');
+  (d.tp||[]).forEach((v,i)=>pl(v,'#26d07c','TP'+(i+1)));
+  pl(I.vwap,'#ff9f43','VWAP');
+  const names={trend:'HTF Trend',structure:'BOS/Estructura',liquidity:'Liquidity Sweep',fvg:'FVG',orderblock:'Order Block',vwap:'VWAP',momentum:'Momentum',session:'Session',entry:'Entry Confirmation'};
+  $('#conf').innerHTML=Object.keys(d.confluence||{}).map(k=>`<li class="${d.confluence[k]?'on':'off'}">${d.confluence[k]?'✓':'○'} ${names[k]||k}</li>`).join('');
+  $('#why').innerHTML=(d.why&&d.why.length?d.why:(d.reasons||['—'])).map(w=>`<li>• ${w}</li>`).join('');
+  const st=d.structure||{}; $('#struct').innerHTML=`Tendencia: <b>${st.trend||'—'}</b><br>Último PH: <b>${st.lastPH??'—'}</b> · PL: <b>${st.lastPL??'—'}</b><br>Sweeps: ${(d.liquidity&&d.liquidity.sweeps||[]).length} · FVGs: ${(d.fvg||[]).length} · OBs: ${(d.orderblocks||[]).length}`;
+  const P=d.position||{}; $('#pos').innerHTML=`Balance: <b>$500</b> · Riesgo: <b>1%</b><br>Riesgo $: <b>${P.risk_amount??'—'}</b><br>Distancia SL: <b>${P.stop_distance_points??'—'} pts</b><br>Lote: <b>${P.lot??'—'}</b>`;
+  $('#ind').innerHTML=`EMA9 <b>${fmt(I.ema9)}</b> · EMA20 <b>${fmt(I.ema20)}</b><br>EMA50 <b>${fmt(I.ema50)}</b> · EMA200 <b>${fmt(I.ema200)}</b><br>VWAP <b>${fmt(I.vwap)}</b> · RSI <b>${fmt(I.rsi)}</b><br>ATR <b>${fmt(I.atr)}</b>`;
+}
+const fmt=v=>v==null?'—':(+v).toFixed(1);
+function load(tf){ fetch('demo_'+tf+'.json').then(r=>r.json()).then(render).catch(e=>{document.getElementById('why').innerHTML='<li>No se pudo cargar la demo: '+e+'</li>';}); }
+$('#tf').addEventListener('change',e=>load(e.target.value));
+load('5m');
+</script>
+</body>
+</html>
